@@ -11,21 +11,23 @@ class MobileNet:
             self.classes = [line.strip() for line in f.readlines()]
 
         # self.model = torch.hub.load('pytorch/vision', 'mobilenet_v2', pretrained=True)
-        self.model = torchvision.models.mobilenet_v2(pretrained=True)
+        self.model = torchvision.models.mobilenet_v2()
+        self.model.load_state_dict(torch.load('mobilenet_v2-b0353104.pth'))
         self.model.eval()
-    
+
     def infer(self, image_path):
-        input_image = Image.open(image_path)
+        input_image = Image.open(image_path).convert('RGB')
         preprocess = transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225]),
         ])
         input_tensor = preprocess(input_image)
 
         # create a mini-batch as expected by the model
-        input_batch = input_tensor.unsqueeze(0) 
+        input_batch = input_tensor.unsqueeze(0)
 
         # move the input and model to GPU for speed if available
         if torch.cuda.is_available():
@@ -40,6 +42,3 @@ class MobileNet:
         confidence, index = torch.max(output, 0)
 
         return (self.classes[index.item()], confidence.item())
-
-
-
