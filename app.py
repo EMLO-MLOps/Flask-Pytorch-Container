@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_from_directory
 from models import MobileNet
 import os
 from math import floor
@@ -8,15 +8,23 @@ from db import *
 
 app = Flask(__name__)
 
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = 'media/uploads'
+app.config['DB_FOLDER'] = 'media/db'
 
 if not os.path.isdir(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'],
                 exist_ok=True)
 
+if not os.path.isdir(app.config['DB_FOLDER']):
+    os.makedirs(app.config['DB_FOLDER'],
+                exist_ok=True)
+
 
 model = MobileNet()
 
+@app.route("/media/<path:path>")
+def static_dir(path):
+    return send_from_directory("media", path)
 
 @app.route('/')
 def index():
@@ -34,6 +42,9 @@ def success():
 
         files = request.files.getlist('files[]')
         outputs = []
+
+        json_file = init_json(app.config['DB_FOLDER'])
+
 
         for file in files:
             if file:
@@ -54,16 +65,18 @@ def success():
                 }
                 outputs.append(output)
 
-                init_db()
-                insert(output)
 
-                previous_data = get_prev()
+                json_file = update_json(json_file, output)
+
+
+                previous_data = get_prev(json_file)
+                previous_data = convert(previous_data)
                 # respond with the inference
-        print(outputs)
+                print(previous_data)
+
         return render_template('inference.html',
                                prev = previous_data,
-                               outputs = outputs
-                               )
+                               outputs = outputs)
 
 
 if __name__ == '__main__':

@@ -1,43 +1,58 @@
 import sqlite3 as sl
 from os.path import exists
+import json
+import os
+import numpy as np
 
-def init_db():
-    file_exists = exists('mydb.db')
+
+json_template = {
+    "filename": [],
+    "inference": [],
+    "confidence": [],
+    "saveLocation": []
+}
 
 
-    print(f"------ {file_exists} ------")
+def init_json(db_path):
+
+    path = os.path.join(db_path, 'mydb.json')
+    file_exists = exists(path)
+
     if not file_exists:
-        con = sl.connect('mydb.db')
-        with con:
-            con.execute("""
-                CREATE TABLE MLINFER (
-                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    filename TEXT,
-                    inference TEXT,
-                    saveLocation TEXT,
-                    confidence DECIMAL
-                );
-            """)
-    else:
-        con = sl.connect('mydb.db')
+        with open(path, 'w') as outfile:
+            json.dump(json_template, outfile)
+
+    with open(path) as json_file:
+        json_format = json.load(json_file)
+    return(json_format)
 
 
-def insert(output):
-    sql = 'INSERT INTO MLINFER (filename, inference, saveLocation, confidence) values(?, ?, ?, ?)'
-    data = [(output['filename'],
-            output['inference'],
-            output['confidence'],
-            output['saveLocation'])]
-    con = sl.connect('mydb.db')
-    with con:
-        con.executemany(sql, data)
+def update_json(json_format, json_file):
+    for key in json_format.keys():
+        json_format[key].append(json_file[key])
 
-    con.close()
+    with open('media/mydb.json', 'w') as outfile:
+        json.dump(json_format, outfile)
+    return(json_format)
 
 
-def get_prev():
-    con = sl.connect('mydb.db')
-    sql = 'SELECT * FROM MLINFER LIMIT 5'
-    data = con.execute(sql)
-    con.close()
-    return(data)
+def get_prev(json_file):
+    json_return = {}
+    length = len(json_file["filename"])
+    length = np.min([length, 5])
+    for key in json_file.keys():
+        json_return[key] = json_file[key][-length:]
+    return(json_return)
+
+
+def convert(json_file):
+    outputs = []
+    length = len(json_file["filename"])
+    for i in range(length):
+        outputs.append([
+                        json_file["filename"][i],
+                        json_file["inference"][i],
+                        json_file["saveLocation"][i],
+                        json_file["confidence"][i]
+                        ])
+    return(outputs)

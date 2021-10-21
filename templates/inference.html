@@ -9,12 +9,37 @@
     <hr>
     <h1 class="display-4">{{output.inference}}!</h1>
     <p class="mt-5">Confidence: <strong>{{output.confidence}}%</strong></p>
-    <p class="mt-5">File: <strong>{{output.filename}}%</strong></p>
-    <img src='{{output.saveLocation}}' alt='No Image found' />
+    <p class="mt-5">FileName: <strong>{{output.filename}}</strong></p>
+    <img src='{{output.saveLocation}}' alt='No Image found' height="200" width="200"/>
+
     <p class="mt-5"> <a href="/">Try again</a></p>
     <hr>
     {% endfor %}
 
+</div>
+
+<<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+  <<h1>Previous Predictions</h1>
+
+  {% if prev %}
+  <table>
+    <tr>
+      <th> Image(s)</th>
+      <th>Inference</th>
+      <th>Confidence</th>
+      <th> Name</th>
+    </tr>
+
+    {% for p in prev %}
+    <tr>
+      <td> <img src='{{p[2]}}' alt='No Image found' height="200" width="200"/></td>
+      <td>{{p[1]}}</td>
+      <td>{{p[3]}}</td>
+      <td>{{p[0]}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endif %}
 </div>
 
 {% endblock %}
