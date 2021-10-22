@@ -31,7 +31,7 @@ def update_json(json_format, json_file):
     for key in json_format.keys():
         json_format[key].append(json_file[key])
 
-    with open('media/mydb.json', 'w') as outfile:
+    with open('media/db/mydb.json', 'w') as outfile:
         json.dump(json_format, outfile)
     return(json_format)
 
